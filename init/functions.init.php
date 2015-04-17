@@ -145,3 +145,32 @@ function mg_changeDb($db,$revert,&$q){
 		}
 	}
 }
+
+function mg_generateURL($filename,$args,$absolute=false,$short=false){
+    $ret = '';
+    if($absolute){
+        $ret .= ($GLOBALS['MG']['SITE']['SSL'])?'https://':'http://';
+        $ret .= $GLOBALS['MG']['CFG']['SITE']['HOSTNAME'];
+    }
+    $ret .= $GLOBALS['MG']['CFG']['SITE']['URI'].$filename;
+    if(!$args || count($args) == 0){
+        return $ret;
+    }
+    if($short){
+        foreach($args as $key=>$val){
+            $ret.='/'.$key.'/'.$val;
+        }
+    }
+    else{
+        $first = true;
+		$ret.='?';
+        foreach($args as $key=>$val){
+            if(!$first){
+                 $ret.='&amp;';
+            }
+            $first = false;
+            $ret.=$key.'='.$val;
+        }
+    }
+    return $ret;
+}

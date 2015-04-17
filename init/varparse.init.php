@@ -90,8 +90,8 @@ function mginit_loadVars(){
 		}
 	}
 	
-	//load cookies if we are not in API mode
-	if(LOAD_TYPE != 2){
+	//load cookies if we are not in API or RESOURCE mode
+	if(LOAD_TYPE < 2){
 		$GLOBALS['MG']['V']['COOKIE'] = array();
 		foreach($GLOBALS['MG']['CFG']['V']['COOKIE'] as $key=>$val){
 			$GLOBALS['MG']['V']['COOKIE'][$val[0]]=isset($_COOKIE[$key])?mginit_cleanVar($_COOKIE[$key],$val[1],$val[2]):$val[3];
@@ -99,7 +99,7 @@ function mginit_loadVars(){
 	}
 
 	//dont load stuff for static pages
-	if(LOAD_TYPE != 0 && $GLOBALS['MG']['SITE']['REQUEST'] != 'GET'){
+	if(LOAD_TYPE != 0 && LOAD_TYPE != 3 && $GLOBALS['MG']['SITE']['REQUEST'] != 'GET'){
 
 		//put JSON decoded data into $_POST if we are getting JSON data
 		if($GLOBALS['MG']['SITE']['REQUEST_CONTENT'] == 'application/json'){
