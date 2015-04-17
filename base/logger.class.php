@@ -156,7 +156,7 @@ class logger{
         if(!$this->logged_fatal_errors){
             return false;
         }
-		$this->el_writeToFile();
+		$this->l_writeToFile();
 
 		if(LOAD_TYPE == 0){
 			if(!is_file($GLOBALS['MG']['CFG']['PATH']['RES'].'/'.$this->lang.'/tpl/fatal_errors.tpl')){
@@ -178,7 +178,13 @@ class logger{
 			echo preg_replace('/\{MSG\}/',$lines,$data);
 		}
 		else{
+			if(LOAD_TYPE == 3){
+				echo '<!--ERROR: ';
+			}
 			echo mg_jsonEncode(array('code'=>500,'errs'=>$this->logs));
+			if(LOAD_TYPE == 3){
+				echo '-->';
+			}
 		}
 		if(isset($GLOBALS['MG']['DB'])){
 			$GLOBALS['MG']['DB']->db_close();

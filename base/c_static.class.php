@@ -31,14 +31,7 @@ if(!defined('INIT')){
 }
 
 /*! Provider Class */
-class c_static{
-
-	//Private Vars
-	private $id;		/*!< Page ID */
-	private $error;		/*!< Page Init Error Code */
-	private $data;		/*!< Page Data */
-	private $packages;	/*!< Package List Object */
-	private $tpl;		/*!< Template Object */
+class c_static extends content{
 	
 	/* ######################
 	 * PUBLIC FUNCTIONS + CONSTRUCTORS
@@ -54,69 +47,26 @@ class c_static{
 	 * @param $id Content ID to load
 	 */
 	public function __construct($id){
-		$this->id = $id;
-		$this->error = 0;
+		$this->c_init($id);
 		
-		//get page data
-		$r = $GLOBALS['MG']['DB']->db_query(array(
-			array(
-				'type'=>DB_SELECT,
-				'table'=>TABLE_PREFIX.'c_pages',
-				'conds'=>array(
-					array(DB_STD,'page_id','=',$id)
-				)
-			),
-			array(
-				'type'=>DB_SELECT,
-				'table'=>TABLE_PREFIX.'packages',
-				'conds'=>false
-			)
-		));
-
-		if(!$r[0]['done']){
-			trigger_error('(c_static): Could not query database: '.$r[0]['error'],E_USER_ERROR);
-			return;
-		}
-		else if(!isset($r[0]['result'][0])){
-			trigger_error('(c_static): Page '.$id.' not found',E_USER_WARNING);
-			$this->error = 404;
-			return;
-		}
-		
-		//setup globals
-		$GLOBALS['MG']['SITE']['PAGE_PATH'] = $GLOBALS['MG']['V']['GET']['PAGE'];
-		$GLOBALS['MG']['SITE']['PAGE_PATH_EXP'] = explode('-',$GLOBALS['MG']['V']['GET']['PAGE']);
-		$GLOBALS['MG']['SITE']['TPL_BASE'] = $GLOBALS['MG']['CFG']['PATH']['RES'].'/'.$GLOBALS['MG']['LANG']['NAME'].'/tpl/';
-		$GLOBALS['MG']['SITE']['PAGE_TPL'] = $GLOBALS['MG']['SITE']['TPL_BASE'].'/pages/'.implode('/',$GLOBALS['MG']['SITE']['PAGE_PATH_EXP']).'.tpl';
-		
-		//$GLOBALS['MG']['SITE']['PAGE_TITLE'] = 
-
-		//setup template
-		$this->tpl = new template(array(
-			'SERVER_NAME'=>$_SERVER['SERVER_NAME'],
-			'SSL'=>(isset($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!='off')?'1':'0',
-			'REQUEST_URI'=>$_SERVER['REQUEST_URI'],
-			'SERVER_SOFTWARE'=>$_SERVER['SERVER_SOFTWARE'],
-			'SERVER_NAME'=>$_SERVER['SERVER_NAME'],
-			'SERVER_SIGNATURE'=>$_SERVER['SERVER_SIGNATURE'],
-			'SERVER_TZ'=>$GLOBALS['MG']['CFG']['SITE']['TIME_ZONE'],
-			'LANGUAGE'=>$GLOBALS['MG']['LANG']['NAME'],
-			'SERVER_TS'=>$GLOBALS['MG']['SITE']['TIME'],
-			'YEAR'=>date('o',$GLOBALS['MG']['SITE']['TIME']),
-			'USER_UID'=>$GLOBALS['MG']['USER']->act_get('id'),
-			'USER_NAME'=>preg_replace('/  /',' ',$GLOBALS['MG']['USER']->act_get('name')),
-			'USER_TZ'=>$GLOBALS['MG']['USER']->act_get('timezone'),
-			'USER_ISAUTH'=>$GLOBALS['MG']['USER']->act_isAuth()?'1':'0',
-			'USER_TS'=>$GLOBALS['MG']['USER']->act_get('time'),
-			'ACL_ADMIN'=>$GLOBALS['MG']['USER']->acl->acl_check('*','full'),
-			'ACL_FULL'=>$GLOBALS['MG']['USER']->acl->acl_check($GLOBALS['MG']['SITE']['PAGE_PATH'],'full')
-		));
-		
-		//parse page data
-		$this->data = $r[0]['result'][0];
-		$this->data['allow_cache'] = (bool)$this->data['allow_cache'];
-		
-		$this->packages = new packages($r[1],array($this->data['package']),$id);
+        //set resource paths
+		// * DO we support print media types or not?????
+        if($GLOBALS['MG']['CFG']['SITE']['DEBUG']){
+            $this->tpl->tpl_setVar('CSS_GLOBAL',mg_generateURL('resources.php',array('p'=>'*','idt'=>0,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
+            $this->tpl->tpl_setVar('CSS_GLOBAL_PRINT',mg_generateURL('resources.php',array('p'=>'*','idt'=>2,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
+            $this->tpl->tpl_setVar('CSS_LOCAL',mg_generateURL('resources.php',array('p'=>$this->id,'idt'=>0,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
+            $this->tpl->tpl_setVar('CSS_LOCAL_PRINT',mg_generateURL('resources.php',array('p'=>$this->id,'idt'=>2,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
+            $this->tpl->tpl_setVar('JS_GLOBAL',mg_generateURL('resources.php',array('p'=>'*','idt'=>1,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, language, style, debug
+            $this->tpl->tpl_setVar('JS_LOCAL',mg_generateURL('resources.php',array('p'=>$this->id,'idt'=>1,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, language, style, debug
+        }
+        else{
+            $this->tpl->tpl_setVar('CSS_GLOBAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p_idt0_l'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
+            $this->tpl->tpl_setVar('CSS_GLOBAL_PRINT',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-_idt-2_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
+            $this->tpl->tpl_setVar('CSS_LOCAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-'.$this->id.'_idt-0_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
+            $this->tpl->tpl_setVar('CSS_LOCAL_PRINT',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-'.$this->id.'_idt-2_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
+            $this->tpl->tpl_setVar('JS_GLOBAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-_idt-1_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.js');
+            $this->tpl->tpl_setVar('JS_LOCAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-'.$this->id.'_idt-1_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.js');
+        }
 	}
 	
 	/*!
@@ -128,10 +78,16 @@ class c_static{
 	 * @param $id Content ID to load
 	 */
 	public function c_run(){
+		$app = '';
+		$notpl = false;
 		if($this->error == 0){
-			$content = $this->packages->pkgs_run($this->data['package'],'hook_static',$this->error);
+			$content = $this->packages->pkgs_run($this->data['package'],'hook_static',$this->error,$app);
 		}
-
+		if(!$this->tpl->tpl_load($GLOBALS['MG']['SITE']['TPL_BASE'].'site.tpl','main')){
+			trigger_error('(page): Could not load site template',E_USER_ERROR);
+			$notpl = true;
+		}
+		
 		if($GLOBALS['MG']['LOG']->l_hasFatalErrors()){
 			$this->error = 500;
 		}
@@ -139,12 +95,19 @@ class c_static{
 		if($this->error != 200){
 			if($this->tpl->tpl_load($GLOBALS['MG']['SITE']['TPL_BASE'].'errors.tpl',(string)$this->error)){
 				$this->tpl->tpl_compile((string)$this->error);
-				return $this->tpl->tpl_return((string)$this->error);
+				$content = $this->tpl->tpl_return((string)$this->error);
 			}
 			else{
-				return $this->error;
+				$content = $this->error;
 			}
 		}
-		return $content;
+
+		if($notpl){
+			return $content;
+		}
+		$this->tpl->tpl_setVar('APP',$app);
+		$this->tpl->tpl_setVar('CONTENT',$content);
+		$this->tpl->tpl_compile('main');
+		return $this->tpl->tpl_return('main');
 	}
 }

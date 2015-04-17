@@ -73,6 +73,10 @@ class packages{
 		}
 		
 		//now load page packages into the system
+        if(empty($toLoad[0])){
+            trigger_error('(packages): No packages specified for page!',E_USER_WARNING);
+            return;
+        }
 		$this->conds=array(array());
 		$this->pkgs_loadHelper($toLoad);
 		unset($this->conds[0][count($this->conds[0])-1]);
@@ -102,6 +106,30 @@ class packages{
 			}
 		}
 	}
+	
+	/*!
+	 * This function returns all packages loaded
+	 *
+	 * @author Kevin Wijesekera
+	 * @date 4-17-2015
+	 *
+	 * @param $roots Root package or packages
+	 * @param $list Container of all packages
+	 */
+	 public function pkgs_getAll($roots,&$list){
+		 foreach($roots as $val){
+			if(isset($this->packages[$val])){
+				$dta = $this->packages[$val];
+				if(!in_array($val,$list)){
+					$list[] = $val;
+				}
+				if(strpos($dta['dependencies'],';') > 0){
+					$this->pkgs_getAll(explode(';',$dta['dependencies']),$list);
+				}
+			}
+
+		 }
+	 }
 
 	/*!
 	 * This function runs a package hook
