@@ -112,7 +112,7 @@ class parser{
 	 */
 	private function p_parseLanguage($text){
 		$matches = array();
-		if(preg_match_all('{LANG:([a-z0-9_-])}',$text,$matches) > 0){
+		if(preg_match_all('/{LANG:([a-z0-9_-]+)}/i',$text,$matches) > 0){
 			$soq = count($matches[1]);
 			for($i=0;$i<$soq;$i++){
 				$text = str_replace($matches[0][$i],$GLOBALS['MG']['LANG']['I'][$matches[1][$i]],$text);
@@ -133,7 +133,7 @@ class parser{
 	 */
 	private function p_parseVars($text){
 		$matches = array();
-		if(preg_match_all('{VAR:([a-z0-9_-])}',$text,$matches) > 0){
+		if(preg_match_all('/{VAR\:([a-z0-9_-]+)}/i',$text,$matches) > 0){
 			$soq = count($matches[1]);
 			for($i=0;$i<$soq;$i++){
 				$text = str_replace($matches[0][$i],$this->vars[$matches[1][$i]],$text);

@@ -144,7 +144,7 @@ abstract class mail{
      * @param $bid Boundry ID Base
 	 */
 	final private function mail_generateBody($message,$bid){
-		
+		$this->body = '';
 		$bodyEncoding = $message['encoding'];
         $bodyCharSet = $this->encoding->CharSet;
 		if ($bodyEncoding == '8bit' && !$this->encoding->enc_has8bitChars($message['content'])) {
@@ -379,7 +379,7 @@ abstract class mail{
             $content .= $this->mail_formatBoundry($boundry_id,$data['t'],false,$attach[2],false,$data['fname']);
             if($inline){
                 $id = '';
-                $content .= sprintf("Content-ID: %s\n",md5($attach[0]));
+                $content .= sprintf("Content-ID: %s@%s\n",md5($attach[0]),$GLOBALS['MG']['CFG']['SITE']['HOSTNAME']);
             }
             
             $encoded_name = $this->encoding->enc_header($this->encoding->enc_stripEOL($data['fname']));

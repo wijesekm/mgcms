@@ -144,8 +144,7 @@ class BaseLoggerTest extends PHPUnit_Framework_TestCase{
             'content'=>'<p>Testing</p><br/></p>Testing 1</p><img src="'.md5('W:\www\backend\test\files\linkedin.gif').'@localhost">',
             'attachments'=>array(
                 array('W:\www\backend\test\files\test.html','html'),
-                array('W:\www\backend\test\files\report.txt','txt'),
-                array('W:\www\backend\test\files\Error.log','log')
+                array('W:\www\backend\test\files\test.txt','txt')
             ),
             'inline'=>array(
                 array('W:\www\backend\test\files\linkedin.gif','gif')
@@ -156,26 +155,30 @@ class BaseLoggerTest extends PHPUnit_Framework_TestCase{
         //test reg-inline-attach
         self::$res->mail_parse($base);
         $this->assertRegExp($testFullFeatureHeaders,self::$res->get_headers()); //multi-part inline attach
-        echo self::$res->get_body();
+        file_put_contents('test/email/reg-inline-attach.txt', self::$res->get_body());
+        $this->assertEquals(file_get_contents('test/email/reg-inline-attach.txt'),self::$res->get_body());
         
         //test reg-inline
         $test = $base;
         unset($test['attachments']);
-        self::$res->mail_parse($base);
+        self::$res->mail_parse($test);
+        file_put_contents('test/email/reg-inline.txt', self::$res->get_body());
         $this->assertRegExp($testFullFeatureHeaders,self::$res->get_headers()); //multi-part inline attach
         //echo self::$res->get_body();
         
         //test reg-attach
         $test = $base;
         unset($test['inline']);
-        self::$res->mail_parse($base);
+        self::$res->mail_parse($test);
+        file_put_contents('test/email/reg-attach.txt', self::$res->get_body());
         $this->assertRegExp($testFullFeatureHeaders,self::$res->get_headers()); //multi-part inline attach
         
         //test reg
         $test = $base;
         unset($test['attachments']);
         unset($test['inline']);
-        self::$res->mail_parse($base);
+        self::$res->mail_parse($test);
+        file_put_contents('test/email/reg.txt', self::$res->get_body());
         $this->assertRegExp($testFullFeatureHeaders,self::$res->get_headers()); //multi-part inline attach
         
         //test plain
@@ -184,7 +187,8 @@ class BaseLoggerTest extends PHPUnit_Framework_TestCase{
         unset($test['attachments']);
         unset($test['inline']);
         unset($test['content']);
-        self::$res->mail_parse($base);
+        self::$res->mail_parse($test);
+        file_put_contents('test/email/plain.txt', self::$res->get_body());
         $this->assertRegExp($testFullFeatureHeaders,self::$res->get_headers()); //multi-part inline attach
         
         //test multi-part inline
