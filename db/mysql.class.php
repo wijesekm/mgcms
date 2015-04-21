@@ -60,11 +60,6 @@ class mysql extends database{
 			return false;
 		}
 		
-		//turn off AUTOCOMMIT
-		if(!@$this->db->options(MYSQLI_INIT_COMMAND,'SET AUTOCOMMIT = 0')){
-			trigger_error('(mysql): Could not set options',E_USER_WARNING);
-		}
-		
 		//set timeout
 		if(!@$this->db->options(MYSQLI_OPT_CONNECT_TIMEOUT, 5)){
 			trigger_error('(mysql): Could not set options',E_USER_WARNING);
@@ -255,13 +250,26 @@ class mysql extends database{
 		if(!$this->db){
 			return false;
 		}
-		$query = '';
 		$returnData = array();
 		$index = 0;
-		$errored = false;
-		$expect_result = array();
-		$count = count($query_data);
+		$multi_query = array(
+			's'=>'',
+			'result'=>array(),
+			'c'=>0
+		);
+		
+		$transaction = array();
+		$log = '';
+		
 		//make query string
+		/*
+		* mysqli_multi_query does not work well with commands that don't return a result set.
+		* There is really no way to get the return status of an individual command that does not have a result
+		* which makes it impossible to get the status of each command.....
+		*
+		* Therefore transaction commands will be piped and run individually until a better way of doing this
+		* is put into place....
+		*/
 		foreach($query_data as $key=>$val){
 			if(isset($val['table'])){
 				$val['table'] = '`'.$this->db->escape_string($val['table']).'`';
@@ -271,34 +279,49 @@ class mysql extends database{
 					if(!$this->from_self){
 						trigger_error('(mysql): Raw queries should not be run by user',E_USER_NOTICE);
 					}
-					$query .= $val['q'].';';
-					$expect_result[] = true;
+					if(empty($val['transaction'])){
+						$multi_query['s'] .= $val['q'].';';
+						$multi_query['result'][] = true;
+						$multi_query['c']++;
+					}
+					else{
+						
+					}
 				break;
 				case DB_SELECT:
-					$query .= $this->db_formatSelect($val).';';
-					$expect_result[] = true;
+					$multi_query['s'] .= $this->db_formatSelect($val).';';
+					$multi_query['result'][] = true;
+					$multi_query['c']++;
 				break;
 				case DB_SELECT_DATABASE:
-					$query.= 'USE `'.$this->db->escape_string($val['db']).'`;';
-					$expect_result[] = false;
+					$multi_query['s'].= 'USE `'.$this->db->escape_string($val['db']).'`;';
+					$expect_result['result'][] = false;
+					$multi_query['c']++;
 				break;
 				case DB_INSERT:
-					$query.= $this->db_formatInsert($val).';';
-					$expect_result[] = true;
+					$q = $this->db_formatUpdate($val).';';
+					$log .= $q;
+					$transaction[] = array($q);
 				break;
 				case DB_UPDATE:
-					$query.=$this->db_formatUpdate($val).';';
-					$expect_result[] = true;
+					$q = $this->db_formatInsert($val).';';
+					$log .= $q;
+					$transaction[] = array($q);
 				break;
 				case DB_REMOVE:
-					$query .= $this->db_formatDelete($val).';';
-					$expect_result[] = true;
+					$q = $this->db_formatDelete($val).';';
+					$log .= $q;
+					$transaction[] = array($q);
 				break;
 				case DB_CREATE_DATABASE:
-					$query.='CREATE DATABASE `'.$this->db->escape_string($val['db']).'`;';
+					$q = 'CREATE DATABASE `'.$this->db->escape_string($val['db']).'`;';
+					$log .= $q;
+					$transaction[] = array($q);
 				break;
 				case DB_DROP_DATABASE:
-					$query.='DROP DATABASE `'.$this->db->escape_string($val['db']).'`;';
+					$q = 'DROP DATABASE `'.$this->db->escape_string($val['db']).'`;';
+					$log .= $q;
+					$transaction[] = array($q);
 				break;
 				case DB_CREATE_TABLE:
 				
@@ -307,7 +330,9 @@ class mysql extends database{
 				
 				break;
 				case DB_DROP_TABLE:
-					$query.='DROP TABLE `'.$val['table'].';';
+					$q = 'DROP TABLE `'.$val['table'].'`;';
+					$log .= $q;
+					$transaction[] = array($q);
 				break;
 			};
 		}
@@ -315,24 +340,37 @@ class mysql extends database{
 		//if debug is enabled lets print the query.....
 		if($this->debug){
 			echo "----\r\n";
-			echo preg_replace('/;/',"\r\n",$query);
+			echo preg_replace('/;/',"\r\n",$multi_query['s'])."\r\n";
+			echo $log."\r\n";
 			echo "----\r\n";
 		}
 		
 		//if logging is enabled lets log the query to the database.....
 		if($this->cfg['logging']){
-			$GLOBALS['MG']['LOG']->l_message(L_DATABASE,'Query: '.$query,'mysql.class.php');
+			$GLOBALS['MG']['LOG']->l_message(L_DATABASE,'Query: '.$multi_query['s'].';'.$log,'mysql.class.php');
 		}
 		
-		//run query....
-		if(!empty($query)){
+		//run transactions
+		foreach($transaction as $val){
+			if(!$this->db->query($val[0])){
+				$returnData[$index]['error']=$this->db_getLastError();
+				$returnData[$index]['done']=false;
+				$index++;
+				continue;
+			}
+			$returnData[$index]['done']=true;
+			$returnData[$index]['rows']=$this->db->affected_rows;
+			$index++;
+		}
+		
+		//run multi_query
+		if(!empty($multi_query['s'])){
 			
-			$this->db->multi_query($query);
-			
-			for($index=0;$index<$count;$index++){
+			$this->db->multi_query($multi_query['s']);
+			for($i=0;$i<$multi_query['c'];$i++){
 				$returnData[$index]=array('done'=>false);
 
-				if(!$expect_result[$index]){
+				if(!$multi_query['result'][$i]){
 					$returnData[$index]['done'] = true;
 				}
 				else if($result = $this->db->store_result()){
@@ -342,7 +380,6 @@ class mysql extends database{
 					$returnData[$index]['result'] = $result->fetch_all($res_type);
 					$result->free();
 				}
-				
 				else{
 					$returnData[$index]['error'] = $this->db_getLastError();
 					$errored = true;
@@ -350,6 +387,7 @@ class mysql extends database{
 				if($this->db->more_results()){
 					$this->db->next_result();
 				}
+				$index++;
 			}
 		}
 		$this->from_self = false;
@@ -401,7 +439,7 @@ class mysql extends database{
 	private function db_formatInsert($data){
 		$start = false;
 		$q = 'INSERT INTO '.$data['table'];
-		
+
 		if(!empty($data['cols'])){
 			$q.= '(';
 			foreach($data['cols'] as $id){
@@ -429,7 +467,7 @@ class mysql extends database{
 					$q.=',';
 				}
 				$start1 = true;
-				$this->db_formatdata($data,$q);
+				$this->db_formatdata($item,$q);
 			}
 			$q.=')';
 		}
@@ -607,8 +645,13 @@ class mysql extends database{
 	 * @param $q Query string
 	 */
 	private function db_formatData($item,&$q){
-
+		if(is_array($item) || is_object($item)){
+			return;
+		}
 		if(is_int($item) || is_float($item) || is_bool($item)){
+			if(empty($item)){
+				$item = '0';
+			}
 			$q.= (string)$item;
 		}
 		else {
