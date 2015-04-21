@@ -89,7 +89,9 @@ class sqlact extends account{
 				'conds'=>array(
 					array(DB_STD,'act_id','=',$user),
 					DB_OR,
-					array(DB_STD,'act_id','=','*')
+					array(DB_STD,'act_id','=','*'),
+					DB_OR,
+					array(DB_STD,'act_id','=','-'.$user)
 				)
 			)
 		);
@@ -108,10 +110,18 @@ class sqlact extends account{
 				$this->user_data[$val['extra_column']] = $val['value'];
 			}
 		}
-		
+		$ignore=array();
 		foreach($data[2]['result'] as $val){
 			if(!empty($val['group_id'])){
-				$this->user_data['groups'][$val['group_id']] = mg_toBool($val['admin']);
+				if($val['act_id'][0]=='-'){
+					$ignore[] = $val['group_id'];
+					if(isset($this->user_data['groups'][$val['group_id']])){
+						unset($this->user_data['groups'][$val['group_id']]);
+					}
+				}
+				else if(!in_array($val['group_id'],$ignore)){
+					$this->user_data['groups'][$val['group_id']] = mg_toBool($val['admin']);
+				}
 			}
 		}
 		

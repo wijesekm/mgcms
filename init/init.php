@@ -171,7 +171,6 @@ if(LOAD_TYPE == 0 && $GLOBALS['MG']['USER']->act_isAuth()){
 	$ses->stime = $GLOBALS['MG']['USER']->act_get('time');
 	$ses->ses_update($GLOBALS['MG']['V']['COOKIE']['AUTH_USER'],$GLOBALS['MG']['V']['COOKIE']['AUTH_SESSION']);
 }
-
 if(LOAD_TYPE != 3){
 	//setup mail router
 	$GLOBALS['MG']['MAIL'] = new mail_router();

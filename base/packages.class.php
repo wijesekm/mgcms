@@ -237,6 +237,7 @@ class packages{
 		foreach($toLoad as $val){
 			if(isset($this->packages[$val])){
 				$dta = $this->packages[$val];
+
 				$this->conds[0][]=array(DB_STD,'pkg_id','=',$val);
 				$this->conds[0][]=DB_OR;
 				$pkg = 'pkg';
@@ -246,11 +247,11 @@ class packages{
 				else if($this->packages[$val]['type']==2){
 					$pkg = 'abstract';
 				}
-				if(!mginit_loadFile($dta['pgroup'],$dta['pkg_id'],$pkg,$this->packages[$val]['type']==0)){
-					trigger_error('(packages): Could not load package '.$val,E_USER_ERROR);
-				}
 				if(strpos($dta['dependencies'],';') > 0){
 					$this->pkgs_loadHelper(explode(';',$dta['dependencies']));
+				}
+				if(!mginit_loadFile($dta['pgroup'],$dta['pkg_id'],$pkg,$this->packages[$val]['type']==0)){
+					trigger_error('(packages): Could not load package '.$val,E_USER_ERROR);
 				}
 			}
 		}

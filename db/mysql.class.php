@@ -410,7 +410,7 @@ class mysql extends database{
 					}
 					else{
 						$returnData[$index] = array();
-						$returnData[$index]['done'] = true;
+						$returnData[$index]['done'] = false;
 						$returnData[$index]['error'] = $this->db_getLastError();
 					}
 					$index++;
@@ -754,7 +754,7 @@ class mysql extends database{
 				else{
 					switch($val[0]){
 						case DB_BETWEEN:
-							$this->db_formatColumn($tbl,$val[1],$q);
+							$this->db_formatColumn($tbl,$val[1],$query);
 							$query .= ' BETWEEN \''.$this->db->escape_string($val[2]).'\' AND \''.$this->db->escape_string($val[3]).'\'';
 						break;
 						case DB_IN:
@@ -762,14 +762,14 @@ class mysql extends database{
 							//$query.=' IN \''.$this->db->escape_string($val[3]).'\'';
 						break;
 						case DB_REGEX:
-							$this->db_formatColumn($tbl,$val[1],$q);
+							$this->db_formatColumn($tbl,$val[1],$query);
 							if($val[2] == '<>'){
 								$query.=' NOT';
 							}
 							$query.=' REGEXP \''.$this->db->escape_string($val[3]).'\'';
 						break;
 						case DB_LIKE:
-							$this->db_formatColumn($tbl,$val[1],$q);
+							$this->db_formatColumn($tbl,$val[1],$query);
 							if($val[2] == '<>'){
 								$query.=' NOT';
 							}
