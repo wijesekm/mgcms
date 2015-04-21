@@ -58,8 +58,8 @@ function mginit_loadVars(){
 	
 	//parse alternate url scheme
 	if(isset($_GET['mgurl'])){
-		$raw_url=(isset($_GET['url']))?$_GET['url']:'';
-		$raw_url=preg_replace('/\/\//','/',$raw_url);
+		$raw_url=(isset($_GET['mgurl']))?$_GET['mgurl']:'';
+		$raw_url=str_replace('//','/',$raw_url);
 		$raw_url = explode('/',$raw_url);
 		$_GET = array();
 		$size = count($raw_url);

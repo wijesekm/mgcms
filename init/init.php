@@ -77,6 +77,7 @@ else{
 		array('base','packages','class'),
 		array('base','content','abstract'),
 		array('base',(LOAD_TYPE==0)?'c_static':'c_provider','class'),
+		array('base','crypto','class'),
 		array('auth','session','class'),
 		array('db','database','abstract'),
 		array('db',$GLOBALS['MG']['CFG']['DB']['METHOD'],'class'),

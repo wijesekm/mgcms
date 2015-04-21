@@ -50,10 +50,10 @@ class session{
 	 */
 	public function __construct($t){
 		if(isset($GLOBALS['MG']['CFG']['SITE']['ACCOUNTS_SESSION_TBL'])){
-			$this->table=array($GLOBALS['MG']['CFG']['SITE']['ACCOUNTS_SESSION_TBL']);
+			$this->table=$GLOBALS['MG']['CFG']['SITE']['ACCOUNTS_SESSION_TBL'];
 		}
 		else{
-			$this->table=array(TABLE_PREFIX.'sessions');
+			$this->table=TABLE_PREFIX.'sessions';
 		}
 		
 		$this->stime = $t;
@@ -231,15 +231,17 @@ class session{
 		switch($cmd){
 			case 0:
 				$query[] = array(
+					'table'=>$this->table,
 					'type'=>DB_INSERT,
-					'fields'=>array('ses_id','user','started','renewed','length','last_ip'),
-					'data'=>array(
+					'cols'=>array('ses_id','user','started','renewed','length','last_ip'),
+					'rows'=>array(
 						array($sid,$uid,$this->stime,$this->stime,$length,$_SERVER['REMOTE_ADDR'])
 					)
 				);
 			break;
 			case 1:
 				$query[] = array(
+					'table'=>$this->table,
 					'type'=>DB_REMOVE,
 					'conds'=>array(
 						array(DB_STD,'ses_id','=',$sid)
@@ -248,11 +250,12 @@ class session{
 			break;
 			case 2:
 				$query[] = array(
+					'table'=>$this->table,
 					'type'=>DB_UPDATE,
 					'conds'=>array(
 						array(DB_STD,'ses_id','=',$sid)
 					),
-					'update'=>array(
+					'changes'=>array(
 						array('renewed',$this->stime),
 						array('last_ip',$_SERVER['REMOTE_ADDR'])
 					)
@@ -269,6 +272,7 @@ class session{
 					$conds=array(array(DB_STD,'ses_id','=',$sid));
 				}
 				$query[] = array(
+					'table'=>$this->table,
 					'type'=>DB_SELECT,
 					'conds'=>$conds
 				);
@@ -282,7 +286,7 @@ class session{
 		}
 		
 		$r = $GLOBALS['MG']['DB']->db_query($query);
-		
+		print_r($r);
 		if($db_sw){
 			$r = $r[1];
 		}
@@ -295,7 +299,7 @@ class session{
 			return false;
 		}
 		
-		return $r['result'];
+		return isset($r['result'])?$r['result']:'';
 	}
 	
 	/*!

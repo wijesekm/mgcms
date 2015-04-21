@@ -184,16 +184,16 @@ class c_resources extends content{
 			}
 		}
 
-		$etag = md5($lang.$lastmtime);
+		$etag = md5($lang.$last_modifiy_time);
 
-		$GLOBALS['MG']['SITE']['HEADERS']['Last-Modified']=gmdate('D, d M Y H:i:s ', $lastmtime) . 'GMT';
+		$GLOBALS['MG']['SITE']['HEADERS']['Last-Modified']=gmdate('D, d M Y H:i:s ', $last_modifiy_time) . 'GMT';
 
 		//cache-control: private, max-age=0, no-cache
 		if(!isset($_SERVER['HTTP_IF_NONE_MATCH'])){
 			$_SERVER['HTTP_IF_NONE_MATCH']='';
 		}
 		if(isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])){
-			if(strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $lastmtime && $_SERVER['HTTP_IF_NONE_MATCH'] == $etag){
+			if(strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $last_modifiy_time && $_SERVER['HTTP_IF_NONE_MATCH'] == $etag){
 				$GLOBALS['MG']['SITE']['HEADERS']['HTTP']='304 Not Modified';
 				return '';
 			}
@@ -202,7 +202,7 @@ class c_resources extends content{
 		//error check
 		$GLOBALS['MG']['LOG']->l_fatalCheck();
 		$page_contents = '';
-		$cache_file_name = $GLOBALS['MG']['CFG']['PATH']['HTDOCS'].'/res/p'.$GLOBALS['MG']['V']['GET']['PAGE'].'_idt'.$GLOBALS['MG']['V']['GET']['ID_T'].'_l'.$lang.'_d'.($GLOBALS['MG']['V']['GET']['DEBUG']?'1':'0').(($js)?'.js':'.css');
+		$cache_file_name = $GLOBALS['MG']['CFG']['PATH']['HTDOCS'].'/res/p'.$this->id.'_idt'.$GLOBALS['MG']['V']['GET']['ID_T'].'_l'.$lang.'_d'.($GLOBALS['MG']['V']['GET']['DEBUG']?'1':'0').(($js)?'.js':'.css');
 		foreach($toload as $path){
 			if($GLOBALS['MG']['V']['GET']['DEBUG']){
 				$page_contents .= file_get_contents($path);

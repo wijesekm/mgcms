@@ -150,20 +150,55 @@ class packages{
 			return;
 		}
 		if(!is_object($this->objs[$package])){
-			$this->objs[$package] = new $package();
+			$this->objs[$package] = new $package($this->packages[$package]['config']);
 			if(!is_object($this->objs[$package])){
 				trigger_error('(packages): Could not create package class '.$package.E_USER_WARNING);
 				$retcode = 500;
 				return;
 			}
 		}
-		if(!method_exists($this->objs[$package],$this->packages[$package][$hook])){
+		if(!method_exists($this->objs[$package],$hook)){
 			trigger_error('(packages): Hook not found in package '.$package.E_USER_WARNING);
 			$retcode = 500;
 			return;
 		}
 		$retcode = 200;
-		return $this->objs[$package]->{$this->packages[$package][$hook]}($retcode);
+		return $this->objs[$package]->{$hook}($retcode);
+	}
+	
+	/*!
+	 * This function runs a package hook
+	 * 
+	 * @author Kevin Wijesekera
+	 * @date 3-20-2015
+	 *
+	 * @param $package Package to run
+	 * @param $hook Hook to run
+	 * @param $retcode Hook return code store
+	 *
+	 * @return Hook content
+	 */	
+	public function pkgs_runExtended($package,$hook,&$retcode,&$app){
+		if(!isset($this->packages[$package])){
+			trigger_error('(packages): Cannot run package....not loaded',E_USER_WARNING);
+			$retcode = 500;
+			return;
+		}
+		if(!is_object($this->objs[$package])){
+			$this->objs[$package] = new $package($this->packages[$package]['config']);
+			if(!is_object($this->objs[$package])){
+				trigger_error('(packages): Could not create package class '.$package.E_USER_WARNING);
+				$retcode = 500;
+				return;
+			}
+		}
+		if(!method_exists($this->objs[$package],$hook)){
+			trigger_error('(packages): Hook not found in package '.$package.E_USER_WARNING);
+			$retcode = 500;
+			return;
+		}
+		$retcode = 200;
+		return $this->objs[$package]->{$hook}($retcode,$app);
 	}
 	
 	/*!
@@ -204,7 +239,14 @@ class packages{
 				$dta = $this->packages[$val];
 				$this->conds[0][]=array(DB_STD,'pkg_id','=',$val);
 				$this->conds[0][]=DB_OR;
-				if(!mginit_loadFile($dta['pgroup'],$dta['pkg_id'],'pkg',true)){
+				$pkg = 'pkg';
+				if($this->packages[$val]['type']== 1){
+					$pkg = 'class';
+				}
+				else if($this->packages[$val]['type']==2){
+					$pkg = 'abstract';
+				}
+				if(!mginit_loadFile($dta['pgroup'],$dta['pkg_id'],$pkg,$this->packages[$val]['type']==0)){
 					trigger_error('(packages): Could not load package '.$val,E_USER_ERROR);
 				}
 				if(strpos($dta['dependencies'],';') > 0){

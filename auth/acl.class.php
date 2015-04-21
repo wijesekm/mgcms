@@ -115,10 +115,11 @@ class acl{
 
 				if(!$this->acl_list[$acl['acl_page']]['full']){	
 					//process access
+					$acl['access'] = (int)$acl['access'];
 					if($acl['access'] == 2){
 						$this->acl_list[$acl['acl_page']]['access'] = 2;
 					}
-					else if($acl[$key] == 1 && $this->acl_list[$acl['acl_page']]['access'] != 2){
+					else if($acl['access'] == 1 && $this->acl_list[$acl['acl_page']]['access'] != 2){
 						$this->acl_list[$acl['acl_page']]['access'] = 1;
 					}
 					
@@ -162,7 +163,6 @@ class acl{
 		if(!isset($this->acl_list[$page]) || ! isset($this->acl_list[$page][$level])){
 			return false;
 		}
-		
-		return $this->acl_list[$acl['acl_page']][$level]===1;
+		return $this->acl_list[$page][$level]===1;
 	}
 }

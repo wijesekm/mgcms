@@ -61,12 +61,15 @@ class c_provider extends content{
 	public function c_run(){
 		$content = array('res'=>'');
 		if($this->error == 0){
-			$content['res'] = $this->packages->pkgs_run($this->data['package'],'hook_static',$this->error);
+			$content['res'] = $this->packages->pkgs_run($this->data['package'],(LOAD_TYPE==2)?'hook_api':'hook_provider',$this->error);
 		}
 		$content['code']= $this->error;
 		if($this->error != 200){
 			$content['errors'] = $GLOBALS['MG']['LOG']->l_getAll();
 		}
-		return mg_jsonEncode($content);
+		if($GLOBALS['MG']['SITE']['ISAJAX']){
+			return mg_jsonEncode($content);
+		}
+		return $content['res'];
 	}
 }

@@ -48,24 +48,24 @@ class c_static extends content{
 	 */
 	public function __construct($id){
 		$this->c_init($id);
-		
+
         //set resource paths
 		// * DO we support print media types or not?????
         if($GLOBALS['MG']['CFG']['SITE']['DEBUG']){
-            $this->tpl->tpl_setVar('CSS_GLOBAL',mg_generateURL('resources.php',array('p'=>'*','idt'=>0,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
-            $this->tpl->tpl_setVar('CSS_GLOBAL_PRINT',mg_generateURL('resources.php',array('p'=>'*','idt'=>2,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
-            $this->tpl->tpl_setVar('CSS_LOCAL',mg_generateURL('resources.php',array('p'=>$this->id,'idt'=>0,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
-            $this->tpl->tpl_setVar('CSS_LOCAL_PRINT',mg_generateURL('resources.php',array('p'=>$this->id,'idt'=>2,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
-            $this->tpl->tpl_setVar('JS_GLOBAL',mg_generateURL('resources.php',array('p'=>'*','idt'=>1,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, language, style, debug
-            $this->tpl->tpl_setVar('JS_LOCAL',mg_generateURL('resources.php',array('p'=>$this->id,'idt'=>1,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, language, style, debug
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('CSS_GLOBAL',mg_generateURL('resources.php',array('p'=>'*','idt'=>0,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('CSS_GLOBAL_PRINT',mg_generateURL('resources.php',array('p'=>'*','idt'=>2,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('CSS_LOCAL',mg_generateURL('resources.php',array('p'=>$this->id,'idt'=>0,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('CSS_LOCAL_PRINT',mg_generateURL('resources.php',array('p'=>$this->id,'idt'=>2,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, isPrint, language, style, debug
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('JS_GLOBAL',mg_generateURL('resources.php',array('p'=>'*','idt'=>1,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, language, style, debug
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('JS_LOCAL',mg_generateURL('resources.php',array('p'=>$this->id,'idt'=>1,'l'=>$GLOBALS['MG']['LANG']['NAME'],'d'=>$GLOBALS['MG']['CFG']['SITE']['DEBUG']))); // page, language, style, debug
         }
         else{
-            $this->tpl->tpl_setVar('CSS_GLOBAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p_idt0_l'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
-            $this->tpl->tpl_setVar('CSS_GLOBAL_PRINT',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-_idt-2_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
-            $this->tpl->tpl_setVar('CSS_LOCAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-'.$this->id.'_idt-0_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
-            $this->tpl->tpl_setVar('CSS_LOCAL_PRINT',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-'.$this->id.'_idt-2_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
-            $this->tpl->tpl_setVar('JS_GLOBAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-_idt-1_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.js');
-            $this->tpl->tpl_setVar('JS_LOCAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-'.$this->id.'_idt-1_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.js');
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('CSS_GLOBAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p_idt0_l'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('CSS_GLOBAL_PRINT',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-_idt-2_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('CSS_LOCAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-'.$this->id.'_idt-0_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('CSS_LOCAL_PRINT',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-'.$this->id.'_idt-2_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.css');
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('JS_GLOBAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-_idt-1_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.js');
+            $GLOBALS['MG']['SITE']['TPL']->tpl_setVar('JS_LOCAL',$GLOBALS['MG']['CFG']['SITE']['URI'].'/res/p-'.$this->id.'_idt-1_l-'.$GLOBALS['MG']['LANG']['NAME'].'_d0.js');
         }
 	}
 	
@@ -80,10 +80,11 @@ class c_static extends content{
 	public function c_run(){
 		$app = '';
 		$notpl = false;
+
 		if($this->error == 0){
-			$content = $this->packages->pkgs_run($this->data['package'],'hook_static',$this->error,$app);
+			$content = $this->packages->pkgs_runExtended($this->data['package'],'hook_static',$this->error,$app);
 		}
-		if(!$this->tpl->tpl_load($GLOBALS['MG']['SITE']['TPL_BASE'].'site.tpl','main')){
+		if(!$GLOBALS['MG']['SITE']['TPL']->tpl_load($GLOBALS['MG']['SITE']['TPL_BASE'].'site.tpl','main')){
 			trigger_error('(page): Could not load site template',E_USER_ERROR);
 			$notpl = true;
 		}
@@ -93,9 +94,9 @@ class c_static extends content{
 		}
 		
 		if($this->error != 200){
-			if($this->tpl->tpl_load($GLOBALS['MG']['SITE']['TPL_BASE'].'errors.tpl',(string)$this->error)){
-				$this->tpl->tpl_compile((string)$this->error);
-				$content = $this->tpl->tpl_return((string)$this->error);
+			if($GLOBALS['MG']['SITE']['TPL']->tpl_load($GLOBALS['MG']['SITE']['TPL_BASE'].'errors.tpl',(string)$this->error)){
+				$GLOBALS['MG']['SITE']['TPL']->tpl_compile((string)$this->error);
+				$content = $GLOBALS['MG']['SITE']['TPL']->tpl_return((string)$this->error);
 			}
 			else{
 				$content = $this->error;
@@ -105,9 +106,9 @@ class c_static extends content{
 		if($notpl){
 			return $content;
 		}
-		$this->tpl->tpl_setVar('APP',$app);
-		$this->tpl->tpl_setVar('CONTENT',$content);
-		$this->tpl->tpl_compile('main');
-		return $this->tpl->tpl_return('main');
+		$GLOBALS['MG']['SITE']['TPL']->tpl_setVar('APP',$app);
+		$GLOBALS['MG']['SITE']['TPL']->tpl_setVar('CONTENT',$content);
+		$GLOBALS['MG']['SITE']['TPL']->tpl_compile('main');
+		return $GLOBALS['MG']['SITE']['TPL']->tpl_return('main');
 	}
 }

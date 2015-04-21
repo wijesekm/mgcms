@@ -121,7 +121,7 @@ abstract class account{
 	 * @return true if user is loaded, false if not
 	 */
 	final public function act_isLoaded(){
-		return $is_loaded;
+		return $this->is_loaded;
 	}
 	
 	/*!

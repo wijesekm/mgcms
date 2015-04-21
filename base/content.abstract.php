@@ -38,7 +38,6 @@ abstract class content{
 	protected $error = 0;		/*!< Page Init Error Code */
 	protected $data;			/*!< Page Data */
 	protected $packages;		/*!< Package List Object */
-	protected $tpl;				/*!< Template Object */
 	
 	/* ######################
 	 * PUBLIC FUNCTIONS + CONSTRUCTORS
@@ -62,8 +61,9 @@ abstract class content{
 			$GLOBALS['MG']['SITE']['PAGE_PATH'] = $id;
 			$GLOBALS['MG']['SITE']['PAGE_PATH_EXP'] = explode('-',$id);
 			$GLOBALS['MG']['SITE']['PAGE_TPL'] = $GLOBALS['MG']['SITE']['TPL_BASE'].'/pages/'.implode('/',$GLOBALS['MG']['SITE']['PAGE_PATH_EXP']).'.tpl';
+			$GLOBALS['MG']['SITE']['ISAJAX'] = true;
 			
-			$this->tpl = new template(array(
+			$GLOBALS['MG']['SITE']['TPL'] = new template(array(
 				'SERVER_NAME'=>$_SERVER['SERVER_NAME'],
 				'SSL'=>(isset($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!='off')?'1':'0',
 				'REQUEST_URI'=>$_SERVER['REQUEST_URI'],

@@ -31,9 +31,9 @@ if(!defined('INIT')){
 define('CRYPTO_HASH_MD5','md5');
 define('CRYPTO_HASH_SHA1','sha1');
 define('CRYPTO_HASH_SHA256','sha256');
-define('CRYPTO_HASH_SHA512','sha512')
-define('CRYPTO_HASH_RIPEMD256','ripemd256')
-define('CRYPTO_HASH_WHIRLPOOL','whirlpool')
+define('CRYPTO_HASH_SHA512','sha512');
+define('CRYPTO_HASH_RIPEMD256','ripemd256');
+define('CRYPTO_HASH_WHIRLPOOL','whirlpool');
 
 define('CRYPTO_MODE_ECB','ecb');
 define('CRYPTO_MODE_CBC','cbc');
@@ -86,7 +86,7 @@ class hash{
 	 * @return hash on success, false on failure
 	 */
 	public function cr_generatePasswordHash($value,$seed=false){
-		return password_hash($value,array('salt'=>$this->cr_generateSeed($seed)));
+		return password_hash($value,array('cost'=>12));
 	}
 	
 	/*!

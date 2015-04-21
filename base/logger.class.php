@@ -29,6 +29,7 @@ if(!defined('INIT')){
 
 define('L_DATABASE','L_DATABASE');
 define('L_AUDIT','L_AUDIT');
+define('L_AUTH','L_AUTH');
 define('L_EMAIL','L_EMAIL');
 
 /*! Error Logger Class */

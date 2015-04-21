@@ -29,7 +29,7 @@ if(!defined('INIT')){
 }
 
 /*! AUTH Class */
-class auth{
+abstract class auth{
 		
 	//public vars
 	
