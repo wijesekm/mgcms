@@ -92,6 +92,7 @@ class mysql extends database{
 			trigger_error('(mysql): Could not connect to database!'.$this->db->connect_error,E_USER_WARNING);
 			return false;
 		}
+		$this->cfg['current_db']=$initalDB;
 		return true;
 	}
 	
@@ -190,6 +191,7 @@ class mysql extends database{
 			trigger_error('(mysql): Could not change to database '.$database.' '.$this->db_getLastError(),E_USER_WARNING);
 			return false;
 		}
+		$this->cfg['current_db']=$database;
 		return true;
 	}
 	
@@ -260,6 +262,7 @@ class mysql extends database{
 		
 		$transaction = array();
 		$log = '';
+		$start_db = $this->cfg['current_db'];
 		
 		//make query string
 		/*
@@ -279,49 +282,58 @@ class mysql extends database{
 					if(!$this->from_self){
 						trigger_error('(mysql): Raw queries should not be run by user',E_USER_NOTICE);
 					}
-					if(empty($val['transaction'])){
-						$multi_query['s'] .= $val['q'].';';
-						$multi_query['result'][] = true;
-						$multi_query['c']++;
-					}
-					else{
-						
-					}
+					//NEEDS WORK......
+					$multi_query['s'] .= $val['q'].';';
+					$multi_query['result'][] = true;
+					$multi_query['c']++;
 				break;
 				case DB_SELECT:
+					if(!empty($val['db']) && $val['db'] != $this->cfg['current_db']){
+						$this->cfg['current_db'] = $val['db'];
+						$multi_query['s'] .= 'USE `'.$this->db->escape_string($val['db']).'`;';
+						$multi_query['result'][] = false;
+						$multi_query['c']++;
+					}
 					$multi_query['s'] .= $this->db_formatSelect($val).';';
 					$multi_query['result'][] = true;
 					$multi_query['c']++;
 				break;
-				case DB_SELECT_DATABASE:
-					$multi_query['s'].= 'USE `'.$this->db->escape_string($val['db']).'`;';
-					$expect_result['result'][] = false;
-					$multi_query['c']++;
-				break;
 				case DB_INSERT:
-					$q = $this->db_formatUpdate($val).';';
-					$log .= $q;
-					$transaction[] = array($q);
-				break;
-				case DB_UPDATE:
+					if(!empty($val['db']) && $val['db'] != $this->cfg['current_db']){
+						$this->cfg['current_db'] = $val['db'];
+						$transaction[] = array('s'=>'USE `'.$this->db->escape_string($val['db']).'`;','result'=>false);
+					}
 					$q = $this->db_formatInsert($val).';';
 					$log .= $q;
-					$transaction[] = array($q);
+					$transaction[] = array('s'=>$q,'result'=>true);
 				break;
-				case DB_REMOVE:
+				case DB_UPDATE:
+					if(!empty($val['db']) && $val['db'] != $this->cfg['current_db']){
+						$this->cfg['current_db'] = $val['db'];
+						$transaction[] = array('s'=>'USE `'.$this->db->escape_string($val['db']).'`;','result'=>false);
+					}
+					$q = $this->db_formatUpdate($val).';';
+					$log .= $q;
+					$transaction[] = array('s'=>$q,'result'=>true);
+				break;
+				case DB_DELETE:
+					if(!empty($val['db']) && $val['db'] != $this->cfg['current_db']){
+						$this->cfg['current_db'] = $val['db'];
+						$transaction[] = array('s'=>'USE `'.$this->db->escape_string($val['db']).'`;','result'=>false);
+					}
 					$q = $this->db_formatDelete($val).';';
 					$log .= $q;
-					$transaction[] = array($q);
+					$transaction[] = array('s'=>$q,'result'=>true);
 				break;
 				case DB_CREATE_DATABASE:
 					$q = 'CREATE DATABASE `'.$this->db->escape_string($val['db']).'`;';
 					$log .= $q;
-					$transaction[] = array($q);
+					$transaction[] = array('s'=>$q,'result'=>true);
 				break;
 				case DB_DROP_DATABASE:
 					$q = 'DROP DATABASE `'.$this->db->escape_string($val['db']).'`;';
 					$log .= $q;
-					$transaction[] = array($q);
+					$transaction[] = array('s'=>$q,'result'=>true);
 				break;
 				case DB_CREATE_TABLE:
 				
@@ -332,9 +344,21 @@ class mysql extends database{
 				case DB_DROP_TABLE:
 					$q = 'DROP TABLE `'.$val['table'].'`;';
 					$log .= $q;
-					$transaction[] = array($q);
+					$transaction[] = array('s'=>$q,'result'=>true);
 				break;
 			};
+		}
+		
+		if($this->cfg['current_db'] != $start_db){
+			$this->cfg['current_db'] = $start_db;
+			if($multi_query['c'] != 0){
+				$multi_query['s'] .= 'USE `'.$this->db->escape_string($start_db).'`;';
+				$multi_query['result'][] = false;
+				$multi_query['c']++;
+			}
+			else{
+				$transaction[] = array('s'=>'USE `'.$this->db->escape_string($start_db).'`;','result'=>false);
+			}
 		}
 		
 		//if debug is enabled lets print the query.....
@@ -351,43 +375,49 @@ class mysql extends database{
 		}
 		
 		//run transactions
+		$nextBad = false;
 		foreach($transaction as $val){
-			if(!$this->db->query($val[0])){
-				$returnData[$index]['error']=$this->db_getLastError();
-				$returnData[$index]['done']=false;
-				$index++;
+			if(!$this->db->query($val['s']) || $nextBad){
+				if(!$val['result']){
+					$nextBad = true;
+				}
+				else{
+					$returnData[$index]['error']=$this->db_getLastError();
+					$returnData[$index]['done']=false;
+					$index++;
+				}
 				continue;
 			}
-			$returnData[$index]['done']=true;
-			$returnData[$index]['rows']=$this->db->affected_rows;
-			$index++;
+			if($val['result']){
+				$returnData[$index]['done']=true;
+				$returnData[$index]['rows']=$this->db->affected_rows;
+				$index++;
+			}
 		}
 		
 		//run multi_query
 		if(!empty($multi_query['s'])){
-			
 			$this->db->multi_query($multi_query['s']);
 			for($i=0;$i<$multi_query['c'];$i++){
-				$returnData[$index]=array('done'=>false);
-
-				if(!$multi_query['result'][$i]){
-					$returnData[$index]['done'] = true;
-				}
-				else if($result = $this->db->store_result()){
-					$returnData[$index]['done'] = true;
-					$returnData[$index]['row'] = $result->num_rows;
-					$returnData[$index]['col'] = $result->field_count;
-					$returnData[$index]['result'] = $result->fetch_all($res_type);
-					$result->free();
-				}
-				else{
-					$returnData[$index]['error'] = $this->db_getLastError();
-					$errored = true;
+				if($multi_query['result'][$i]){
+					if($result = $this->db->store_result()){
+						$returnData[$index] = array();
+						$returnData[$index]['done'] = true;
+						$returnData[$index]['row'] = $result->num_rows;
+						$returnData[$index]['col'] = $result->field_count;
+						$returnData[$index]['result'] = $result->fetch_all($res_type);
+						$result->free();
+					}
+					else{
+						$returnData[$index] = array();
+						$returnData[$index]['done'] = true;
+						$returnData[$index]['error'] = $this->db_getLastError();
+					}
+					$index++;
 				}
 				if($this->db->more_results()){
 					$this->db->next_result();
 				}
-				$index++;
 			}
 		}
 		$this->from_self = false;
