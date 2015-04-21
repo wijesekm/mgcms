@@ -88,7 +88,7 @@ class session{
 		if(!$this->ses_setCookies($uid,$sid,$length)){
 			return false;
 		}
-		return $this->sid;
+		return $sid;
 	}
 	
 	/*!
@@ -111,11 +111,11 @@ class session{
 			return false;
 		}
 		$data = $data[0];
-		if(!isset($data[0]['user'])){
+		if(!isset($data['user'])){
 			return false;
 		}
 		
-		$this->length = $data[0]['user'];
+		$this->length = $data['user'];
 		
 		if($uid === $data['user'] && $sid === $data['ses_id']){
 			if(!$GLOBALS['MG']['CFG']['SITE']['TWO_FACTOR_EN']  || (bool)$data['twofactor']){
@@ -219,21 +219,13 @@ class session{
 	 */
 	private function ses_dbCommand($cmd,$uid,$sid,$length=0){
 		$query = array();
-		$db_sw = false;
-		if(!empty($GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB'])){
-			$db_sw = true;
-			$query[] = array(
-				'type'=>DB_SELECT_DATABASE,
-				'db'=>$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB']
-			);
-		}
-
 		switch($cmd){
 			case 0:
 				$query[] = array(
 					'table'=>$this->table,
 					'type'=>DB_INSERT,
 					'cols'=>array('ses_id','user','started','renewed','length','last_ip'),
+					'db'=>$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB'],
 					'rows'=>array(
 						array($sid,$uid,$this->stime,$this->stime,$length,$_SERVER['REMOTE_ADDR'])
 					)
@@ -242,7 +234,8 @@ class session{
 			case 1:
 				$query[] = array(
 					'table'=>$this->table,
-					'type'=>DB_REMOVE,
+					'type'=>DB_DELETE,
+					'db'=>$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB'],
 					'conds'=>array(
 						array(DB_STD,'ses_id','=',$sid)
 					),
@@ -252,6 +245,7 @@ class session{
 				$query[] = array(
 					'table'=>$this->table,
 					'type'=>DB_UPDATE,
+					'db'=>$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB'],
 					'conds'=>array(
 						array(DB_STD,'ses_id','=',$sid)
 					),
@@ -274,32 +268,20 @@ class session{
 				$query[] = array(
 					'table'=>$this->table,
 					'type'=>DB_SELECT,
+					'db'=>$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB'],
 					'conds'=>$conds
 				);
 			break;
 		};
-		if($db_sw){
-			$query[] = array(
-				'type'=>DB_SELECT_DATABASE,
-				'db'=>$GLOBALS['MG']['CFG']['DB']['DB']
-			);
-		}
-		
+
 		$r = $GLOBALS['MG']['DB']->db_query($query);
-		print_r($r);
-		if($db_sw){
-			$r = $r[1];
-		}
-		else{
-			$r = $r[0];
-		}
-		
-		if(!$r['done']){
-			trigger_error('(session): Could not perform database operation: '.$r['error'],E_USER_WARNING);
+
+		if(!$r[0]['done']){
+			trigger_error('(session): Could not perform database operation: '.$val['error'],E_USER_WARNING);
 			return false;
 		}
 		
-		return isset($r['result'])?$r['result']:'';
+		return isset($r[0]['result'])?$r[0]['result']:$r[0]['done'];
 	}
 	
 	/*!
@@ -325,7 +307,7 @@ class session{
 		$GLOBALS['MG']['CFG']['SITE']['SESSION_COOKIE'] = 'auth_';
 		
 		$t = setcookie($GLOBALS['MG']['CFG']['SITE']['SESSION_COOKIE'].'token',$sid,$length,$d['COOKIE_PATH'],$d['COOKIE_DOM'],$d['COOKIE_SECURE']);
-		$t &= setcookie($GLOBALS['MG']['CFG']['SITE']['SESSION_COOKIE'].'uid',$uid,$length,$d['COOKIE_PATH'],$d['COOKIE_DOM'],$d['COOKIE_SECURE']);
+		$t &= setcookie($GLOBALS['MG']['CFG']['SITE']['SESSION_COOKIE'].'user',$uid,$length,$d['COOKIE_PATH'],$d['COOKIE_DOM'],$d['COOKIE_SECURE']);
 		
 		if(!$t){
 			trigger_error('(session): Could not set session cookies',E_USER_ERROR);

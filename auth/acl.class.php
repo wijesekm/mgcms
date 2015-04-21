@@ -160,8 +160,17 @@ class acl{
 	 * @return false if no entry or no access, true if access
 	 */
 	public function acl_check($page,$level='access'){
+		if(isset($this->acl_list['*'])){
+			if($this->acl_list['*']['full']){
+				return true;
+			}
+			return $this->acl_list['*'][$level]===1;
+		}
 		if(!isset($this->acl_list[$page]) || ! isset($this->acl_list[$page][$level])){
 			return false;
+		}
+		if($this->acl_list[$page]['full']){
+			return true;
 		}
 		return $this->acl_list[$page][$level]===1;
 	}
