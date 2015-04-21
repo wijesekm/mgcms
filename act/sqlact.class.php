@@ -52,7 +52,6 @@ class sqlact extends account{
 		$table = (!empty($GLOBALS['MG']['CFG']['SITE']['ACCOUNT_TBL']))?$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_TBL']:TABLE_PREFIX.'accounts';
 		$table_extras = (!empty($GLOBALS['MG']['CFG']['SITE']['ACCOUNT_TBL']))?$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_TBL'].'_extra':TABLE_PREFIX.'accounts_extra';
 		$table_groups = (!empty($GLOBALS['MG']['CFG']['SITE']['GROUP_TBL']))?$GLOBALS['MG']['CFG']['SITE']['GROUP_TBL'].'_membership':TABLE_PREFIX.'groups_membership';
-		$index = 0;
 		if(empty($user)){
 			$user = $GLOBALS['MG']['CFG']['SITE']['DEFAULT_ACT'];
 		}
@@ -66,62 +65,51 @@ class sqlact extends account{
 			$this->is_auth = true;
 		}
 		
-		$query = array();
-		if(!empty($GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB'])){
-			$query[] = array(
-				'type'=>DB_SELECT_DATABASE,
-				'db'=>$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB']
-			);
-		}
-		
-		$query[] = array(
+		$query = array(
+			array(
 				'type'=>DB_SELECT,
 				'table'=>$table,
+				'db'=>$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB'],
 				'conds'=>array(
 					array(DB_STD,'act_id','=',$user)
 				)
-			);
-			
-		$query[] = array(
+			),
+			array(
 				'type'=>DB_SELECT,
 				'table'=>$table_extras,
+				'db'=>$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB'],
 				'conds'=>array(
 					array(DB_STD,'act_id','=',$user)
 				)
-			);
-		
-		$query[] = array(
+			),
+			array(
 				'type'=>DB_SELECT,
 				'table'=>$table_groups,
+				'db'=>$GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB'],
 				'conds'=>array(
-					array(DB_STD,'act_id','=',$user)
+					array(DB_STD,'act_id','=',$user),
+					DB_OR,
+					array(DB_STD,'act_id','=','*')
 				)
-			);
-			
-		if(!empty($GLOBALS['MG']['CFG']['SITE']['ACCOUNT_DB'])){
-			$query[] = array(
-				'type'=>DB_SELECT_DATABASE,
-				'db'=>$GLOBALS['MG']['CFG']['DB']['DB']
-			);
-			$index = 1;
-		}
+			)
+		);
 		
 		$data = $GLOBALS['MG']['DB']->db_query($query);
-		if(!$data[$index]['done'] || !$data[$index+1]['done'] || !$data[$index+2]['done']){
+		if(!$data[0]['done'] || !$data[1]['done'] || !$data[2]['done']){
 			trigger_error('(sqlact): Could not load account from accounts table',E_USER_ERROR);
 			return false;
 		}
-		$this->user_data = $data[$index]['result'][0];
+		$this->user_data = $data[0]['result'][0];
 		$this->user_data['id']=$this->user_data['act_id'];
 		$this->user_data['groups']=array();
 		
-		foreach($data[$index+1]['result'] as $val){
+		foreach($data[1]['result'] as $val){
 			if(!empty($val['extra_column'])){
 				$this->user_data[$val['extra_column']] = $val['value'];
 			}
 		}
 		
-		foreach($data[$index+2]['result'] as $val){
+		foreach($data[2]['result'] as $val){
 			if(!empty($val['group_id'])){
 				$this->user_data['groups'][$val['group_id']] = mg_toBool($val['admin']);
 			}
